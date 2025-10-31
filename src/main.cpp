@@ -5,7 +5,7 @@
 #include <time.h>
 
 
-#include "localsolver.h". // Now Hexaly --> needs to be updated 
+#include "optimizer/hexalyoptimizer.h". // Now Hexaly --> needs to be updated 
 
 
 using namespace localsolver;

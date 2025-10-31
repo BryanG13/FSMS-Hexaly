@@ -44,6 +44,36 @@ target_link_libraries(Hexaly ${OpenMP_CXX_LIBRARIES})
 target_link_libraries(Hexaly Threads::Threads)
 target_link_libraries(Hexaly ilocplex cplex concert pthread m)
 
+# Hexaly SDK integration
+# Configuration: allow overriding installation root via -DHEXALY_ROOT or HEXALY_HOME environment variable
+set(_HEXALY_HINTS "$ENV{HEXALY_HOME}" "/opt/hexaly_14_0")
+
+find_path(HEXALY_INCLUDE_DIR
+    NAMES localsolver.h hexaly.h hexaly/hexaly.h
+    HINTS ${_HEXALY_HINTS}
+    PATH_SUFFIXES include include/hexaly
+)
+
+find_library(HEXALY_LIBRARY
+    NAMES hexaly localsolver
+    HINTS ${_HEXALY_HINTS}
+    PATH_SUFFIXES lib lib64 lib/macos lib/osx-arm64 lib/osx-universal lib/darwin
+)
+
+if(HEXALY_INCLUDE_DIR AND HEXALY_LIBRARY)
+    message(STATUS "Found Hexaly: include at ${HEXALY_INCLUDE_DIR}, lib at ${HEXALY_LIBRARY}")
+    target_include_directories(Hexaly PRIVATE ${HEXALY_INCLUDE_DIR})
+    target_link_libraries(Hexaly PRIVATE ${HEXALY_LIBRARY})
+    # On macOS, help the runtime loader find the Hexaly dylib if it's outside system paths
+    if(APPLE)
+        # Add rpath pointing to the detected library directory
+        get_filename_component(_HEXALY_LIB_DIR ${HEXALY_LIBRARY} DIRECTORY)
+        set_target_properties(Hexaly PROPERTIES BUILD_RPATH ${_HEXALY_LIB_DIR} INSTALL_RPATH ${_HEXALY_LIB_DIR})
+    endif()
+else()
+    message(WARNING "Hexaly SDK not found. Set HEXALY_HOME or pass -DHEXALY_ROOT to help CMake locate it. Expected root like /opt/hexaly_14_0")
+endif()
+
 # Set compiler flags 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
