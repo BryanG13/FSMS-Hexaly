@@ -4,11 +4,10 @@
 #include <random>
 #include <time.h>
 
+#include "hexalyoptimizer.h". // Now Hexaly --> needs to be updated 
 
-#include "optimizer/hexalyoptimizer.h". // Now Hexaly --> needs to be updated 
 
-
-using namespace localsolver;
+using namespace localsolver; // Now Hexaly --> needs to be updated 
 using namespace std;
 
 int main() {
