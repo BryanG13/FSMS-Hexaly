@@ -1,4 +1,4 @@
-## FSMS-Hexaly: Demand‑Responsive Feeder Scheduling with Hexaly
+## FSMS-Hexaly: Feeder Service with Madatory Stops with Hexaly
 
 This repository contains a C++17 implementation of a demand‑responsive feeder/shuttle scheduling model solved with the Hexaly optimizer (formerly LocalSolver). It reads passenger and stop data, builds an optimization model, and writes solution artifacts such as bus routes, timetables, and passenger assignments.
 
