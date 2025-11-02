@@ -4,10 +4,10 @@
 #include <random>
 #include <time.h>
 
-#include "hexalyoptimizer.h". // Now Hexaly --> needs to be updated 
+#include "optimizer/hexalyoptimizer.h"// Now Hexaly --> needs to be updated 
 
 
-using namespace localsolver; // Now Hexaly --> needs to be updated 
+using namespace hexaly; // Now Hexaly --> needs to be updated 
 using namespace std;
 
 int main() {
@@ -147,19 +147,19 @@ int main() {
 
 	//remove memory
 	for (i = 0; i < N; i++) {
-		delete mandatory[i];
+		delete [] mandatory[i];
 	}
-	delete mandatory;
+	delete [] mandatory;
 
 	for (i = 0; i < (N - 1) * M; i++) {
-		delete optional[i];
+		delete [] optional[i];
 	}
-	delete optional;
+	delete [] optional;
 
 	for (i = 0; i < R; i++) {
-		delete passengers[i];
+		delete [] passengers[i];
 	}
-	delete passengers;
+	delete [] passengers;
 	//exit(0);
 
 	// ---------------- Shortest route
@@ -190,14 +190,14 @@ int main() {
 
 	try {
 		// +++++++++++++++++++++++++++++++++++++  Declares the optimization model. ++++++++++++++++++++++++++++++++++++++++++++++++++ 
-		LocalSolver localsolver;
-		LSModel model = localsolver.getModel();
+		HexalyOptimizer optimizer;
+		HxModel model = optimizer.getModel();
 
 		// ++++++++++++++++++++++++++++++++++++++++++++ VARIABLES +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		 // routing decisions for each bus b on each trip t
-		vector<vector<LSExpression>> x(B);
+	vector<vector<HxExpression>> x(B);
 		for (b = 0; b < B; b++) {
-			vector<LSExpression> x1(T);
+			vector<HxExpression> x1(T);
 			for (t = 0; t < T; t++) {
 				x1[t] = model.listVar(S); // number of possible stops (can be different for each bus on eeach trip) 
 				x1[t].setName("x_" + to_string(b) + "_" + to_string(t));
@@ -207,13 +207,13 @@ int main() {
 		//*/
 
 		// 0-1 assignment decisions: assigns a passenger to one bus on one trip and one stop
-		vector<vector<vector<vector<LSExpression>>>> y(R);
+	vector<vector<vector<vector<HxExpression>>>> y(R);
 		for (p = 0; p < R; p++) {
-			vector<vector<vector<LSExpression>>> y1(B);
+			vector<vector<vector<HxExpression>>> y1(B);
 			for (b = 0; b < B; b++) {
-				vector<vector<LSExpression>> y2(T);
+				vector<vector<HxExpression>> y2(T);
 				for (t = 0; t < T; t++) {
-					vector<LSExpression> y3(S);
+					vector<HxExpression> y3(S);
 					for (i = 0; i < S; i++) {
 						y3[i] = model.boolVar();
 						y3[i].setName("y_" + to_string(p) + "_" + to_string(b) + "_" + to_string(t) + "_" + to_string(i));
@@ -227,11 +227,11 @@ int main() {
 		}
 
 		// departure times at mandatory stops
-		vector<vector<vector<LSExpression>>> d(B);
+	vector<vector<vector<HxExpression>>> d(B);
 		for (b = 0; b < B; b++) {
-			vector<vector<LSExpression>> d1(T);
+			vector<vector<HxExpression>> d1(T);
 			for (t = 0; t < T; t++) {
-				vector<LSExpression> d2(N);
+				vector<HxExpression> d2(N);
 				for (i = 0; i < 1; i++) {
 					d2[i] = model.floatVar(minp, maxp);
 					d2[i].setName("d_" + to_string(b) + "_" + to_string(t) + "_" + to_string(i));
@@ -242,11 +242,11 @@ int main() {
 		}
 
 		// Diff in departure times
-		vector<vector<vector<LSExpression>>> Dd(B);
+	vector<vector<vector<HxExpression>>> Dd(B);
 		for (b = 0; b < B; b++) {
-			vector<vector<LSExpression>> Dd1(T);
+			vector<vector<HxExpression>> Dd1(T);
 			for (t = 0; t < T; t++) {
-				vector<LSExpression> Dd2(N);
+				vector<HxExpression> Dd2(N);
 				for (i = 0; i < N; i++) {
 					//Dd2[i] = model.floatVar(0, xt);
 					//Dd2[i].setName("Dd_" + to_string(b) + "_" + to_string(t) + "_" + to_string(i));
@@ -257,38 +257,38 @@ int main() {
 		}
 
 		// Departure time of passengers
-		LSExpression dp[R];
+	HxExpression dp[R];
 		for (p = 0; p < R; p++) {
 			//dp[p] = model.floatVar(0, INT32_MAX);
 			//dp[p].setName("dp_" + to_string(p));
 		}
 		// Late departure time of passengers
-		LSExpression d_late[R2];
+	HxExpression d_late[R2];
 		for (p = 0; p < R2; p++) {
 			//d_late[p] = model.floatVar(0, d_al);
 			//d_late[p].setName("d_late_" + to_string(p));
 		}
 		// Early departure time of passengers
-		LSExpression d_early[R2];
+	HxExpression d_early[R2];
 		for (p = 0; p < R2; p++) {
 			//d_early[p] = model.floatVar(0, d_de);
 			//d_early[p].setName("d_early_" + to_string(p));
 		}
 
 		// Arrival time of passengers
-		LSExpression ap[R];
+	HxExpression ap[R];
 		for (p = 0; p < R; p++) {
 			//ap[p] = model.floatVar(0, INT32_MAX);
 			//ap[p].setName("ap_" + to_string(p));
 		}
 		// Late arrival time of passengers
-		LSExpression a_late[R1];
+	HxExpression a_late[R1];
 		for (p = 0; p < R1; p++) {
 			//a_late[p] = model.floatVar(0, d_al);
 			//a_late[p].setName("a_late_" + to_string(p));
 		}
 		// Early arrival time of passengers
-		LSExpression a_early[R1];
+	HxExpression a_early[R1];
 		for (p = 0; p < R1; p++) {
 			//a_early[p] = model.floatVar(0, d_ae);
 			//a_early[p].setName("a_early_" + to_string(p));
@@ -297,9 +297,9 @@ int main() {
 		// ++++++++++++++++++++++++++++++++++++++++++++++ CONSTRAINTS +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 		// Create distance as an array to be able to access it with an "at" operator
-		LSExpression distanceArray = model.array();
+	HxExpression distanceArray = model.array();
 		for (i = 0; i < S; i++) {
-			LSExpression distanceArray1 = model.array();
+			HxExpression distanceArray1 = model.array();
 			for (j = 0; j < S; j++) {
 				distanceArray1.addOperand(traveltimes[i][j]);
 			}
@@ -308,11 +308,11 @@ int main() {
 
 		// All passengers need a bus a trip and a stop
 		for (p = 0; p < R; p++) {
-			LSExpression Ysum = model.sum();
+			HxExpression Ysum = model.sum();
 			for (b = 0; b < B; b++) {
 				for (t = 0; t < T; t++) {
 					for (i = 0; i < S; i++) {
-						Ysum += y[p][b][t][i];
+						Ysum = Ysum + y[p][b][t][i];
 					}
 				}
 			}
@@ -324,7 +324,7 @@ int main() {
 		for (p = 0; p < R; p++) {
 			for (i = 0; i < S; i++) {
 				if (traveltimep[p][i] == INT32_MAX) {
-					//LSExpression sumY = model.sum();
+					//HxExpression sumY = model.sum();
 					for (b = 0; b < B; b++) {
 						for (t = 0; t < T; t++) {
 							//sumY += y[p][b][t][i];
@@ -339,10 +339,10 @@ int main() {
 		//capacity constraint: max number of passenger on each bus on each trip
 		for (b = 0; b < B; b++) {
 			for (t = 0; t < T; t++) {
-				LSExpression Ysum = model.sum();
+				HxExpression Ysum = model.sum();
 				for (p = 0; p < R; p++) {
 					for (i = 0; i < S; i++) {
-						Ysum += y[p][b][t][i];
+						Ysum = Ysum + y[p][b][t][i];
 					}
 				}
 				model.constraint(Ysum <= C);
@@ -354,12 +354,12 @@ int main() {
 			for (t = 0; t < T; t++) {
 				// First and last stop
 				model.constraint(x[b][t][0] == 0);
-				LSExpression nc = model.count(x[b][t]);
+				HxExpression nc = model.count(x[b][t]);
 				model.constraint(x[b][t][nc - 1] == N - 1);
 
 				//visit each mandatory stop
 				for (i = 1; i < N - 1; i++) {
-					LSExpression cM = model.contains(x[b][t], i);
+					HxExpression cM = model.contains(x[b][t], i);
 					model.constraint(cM == true);
 					if (i > 1) model.constraint(model.indexOf(x[b][t], i - 1) < model.indexOf(x[b][t], i));
 				}
@@ -369,12 +369,12 @@ int main() {
 		for (b = 0; b < B; b++) {
 			for (t = 0; t < T; t++) {
 				for (i = N; i < S; i++) {
-					LSExpression sumY = model.sum();
+					HxExpression sumY = model.sum();
 					for (p = 0; p < R; p++) {
-						sumY += y[p][b][t][i];
+						sumY = sumY + y[p][b][t][i];
 					}
 
-					LSExpression cMX = model.contains(x[b][t], i);
+					HxExpression cMX = model.contains(x[b][t], i);
 
 					//LSExpression cond = model.iif(sumY != 0, cMX == true, 1); //MAKES INCONSISTENT if no "else" argument given 
 					//LSExpression cond2 = model.iif(cMX == true, sumY != 0, 1);
@@ -389,11 +389,11 @@ int main() {
 		// def of bus departures at mandatory stops
 		for (b = 0; b < B; b++) {
 			for (t = 0; t < T; t++) {
-				LSExpression distSelector = model.createLambdaFunction([&](LSExpression i) { return model.at(distanceArray, x[b][t][i - 1], x[b][t][i]); });
+				HxExpression distSelector = model.createLambdaFunction([&](HxExpression i) { return model.at(distanceArray, x[b][t][i - 1], x[b][t][i]); });
 				for (i = 1; i < N; i++) {
-					LSExpression stop1 = model.indexOf(x[b][t], i);
+					HxExpression stop1 = model.indexOf(x[b][t], i);
 					//LSExpression stop0 = model.indexOf(x[b][t], i - 1);
-					LSExpression tt01 = model.sum(model.range(1, stop1 + 1), distSelector);
+					HxExpression tt01 = model.sum(model.range(1, stop1 + 1), distSelector);
 					//LSExpression tt01 = model.at(distanceArray, x[b][t][i], x[b][t][i - 1]);
 					//if(i==0) cout << "hey i:" << i<< "\n";
 					//model.constraint(d[b][t][i] == d[b][t][0] + tt01);
@@ -412,21 +412,21 @@ int main() {
 
 		// def of dp
 		for (p = 0; p < R; p++) {
-			LSExpression sumD = model.sum();
+			HxExpression sumD = model.sum();
 			for (b = 0; b < B; b++) {
 				for (t = 0; t < T; t++) {
-					LSExpression distSelector = model.createLambdaFunction([&](LSExpression i) { return model.at(distanceArray, x[b][t][i - 1], x[b][t][i]); });
+					HxExpression distSelector = model.createLambdaFunction([&](HxExpression i) { return model.at(distanceArray, x[b][t][i - 1], x[b][t][i]); });
 
 					for (i = 0; i < N; i++) {
 						//LSExpression cond1 = model.iif(y[p][b][t][i] == 1, dp[p] = d[b][t][i], 1);
-						sumD += y[p][b][t][i] * (d[b][t][i]);
+						sumD = sumD + (y[p][b][t][i] * d[b][t][i]);
 						//model.constraint(cond1);
 					}
 					for (i = N; i < S; i++) {
-						LSExpression stop = model.indexOf(x[b][t], i);
-						LSExpression dpt = model.sum(model.range(1, stop + 1), distSelector);
+						HxExpression stop = model.indexOf(x[b][t], i);
+						HxExpression dpt = model.sum(model.range(1, stop + 1), distSelector);
 
-						sumD += y[p][b][t][i] * (dpt + d[b][t][0]);
+						sumD = sumD + (y[p][b][t][i] * (dpt + d[b][t][0]));
 						//LSExpression cond1 = model.iif(y[p][b][t][i] == 1, dp[p] = dpt + d[b][t][0], 1);
 						//model.constraint(cond1);
 					}
@@ -440,12 +440,12 @@ int main() {
 
 		// def of ap
 		for (p = 0; p < R; p++) {
-			LSExpression sumY = model.sum();
+			HxExpression sumY = model.sum();
 			for (b = 0; b < B; b++) {
 				for (t = 0; t < T; t++) {
-					//LSExpression sumY = model.sum();
+					//HxExpression sumY = model.sum();
 					for (i = 0; i < S; i++) {
-						sumY += y[p][b][t][i] * d[b][t][N - 1];
+						sumY = sumY + (y[p][b][t][i] * d[b][t][N - 1]);
 					}
 					//LSExpression cond2 = model.iif(sumY == 1, ap[p] = d[b][t][N - 1], 1);
 					//model.constraint(cond2);
@@ -499,7 +499,7 @@ int main() {
 								Dd[b][t][i].addOperand(model.iif(d[l][j][i] > d[b][t][i], d[l][j][i] - d[b][t][i], INT64_MAX));
 								//Dd[b][t][i].addOperand(model.iif(d[l][j][i] > d[b][t][i], d[l][j][i] - d[b][t][i], xt*10));
 								//model.constraint(cond4);
-								//LSExpression cond5 = model.iif(d[l][j][i] > d[b][t][i], Dd[b][t][i] >= d[l][j][i] - d[b][t][i], 1);
+								//HxExpression cond5 = model.iif(d[l][j][i] > d[b][t][i], Dd[b][t][i] >= d[l][j][i] - d[b][t][i], 1);
 								//model.constraint(cond5);
 								//model.constraint(model.iif(d[l][j][i] > d[b][t][i], Dd[b][t][i] <= d[l][j][i] - d[b][t][i], 1));
 								//model.constraint(model.iif(d[l][j][i] > d[b][t][i], Dd[b][t][i] >= d[l][j][i] - d[b][t][i], 1));
@@ -521,27 +521,27 @@ int main() {
 		//*/
 
 		// ++++++++++++++++++++++++++++++++++++++++++++++ OBJECTIVE FUNCTION +++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		LSExpression Travel = model.sum();
+	HxExpression Travel = model.sum();
 		for (p = 0; p < R; p++) {
-			Travel += (ap[p] - dp[p]);
+			Travel = Travel + (ap[p] - dp[p]);
 		}
 
-		LSExpression Walk = model.sum();
+	HxExpression Walk = model.sum();
 		for (p = 0; p < R; p++) {
 			for (b = 0; b < B; b++) {
 				for (t = 0; t < T; t++) {
 					for (i = 0; i < S; i++) {
-						Walk += y[p][b][t][i] * traveltimep[p][i];
+						Walk = Walk + (y[p][b][t][i] * traveltimep[p][i]);
 					}
 				}
 			}
 		}
-		LSExpression Diff = model.sum();
+	HxExpression Diff = model.sum();
 		for (p = 0; p < R1; p++) {
-			Diff += (a_late[p] + a_early[p]);
+			Diff = Diff + (a_late[p] + a_early[p]);
 		}
 		for (p = 0; p < R2; p++) {
-			Diff += (d_late[p] + d_early[p]);
+			Diff = Diff + (d_late[p] + d_early[p]);
 		}
 
 		// minimize the objective sum;
@@ -552,22 +552,22 @@ int main() {
 		// close model, then solve
 		model.close();
 		
-		// Parameterizes the solver. 
-		localsolver.getParam().setTimeBetweenDisplays(60);
-		localsolver.getParam().setTimeLimit(MTime);
-		localsolver.solve();
+	// Parameterizes the solver. 
+	optimizer.getParam().setTimeBetweenDisplays(60);
+	optimizer.getParam().setTimeLimit(MTime);
+	optimizer.solve();
 
-		LSSolution sol = localsolver.getSolution();
+	HxSolution sol = optimizer.getSolution();
 
 		if (sol.getStatus() == 0) {
-			LSInconsistency iis = localsolver.computeInconsistency();
+			HxInconsistency iis = optimizer.computeInconsistency();
 			std::cout << iis.toString() << std::endl;
 		}
 		else if (sol.getStatus() == 1) {
 			cout << "\n INFEASIBLE SOLUTION: expressions violated --> \n";
 			int nbExpressions = model.getNbExpressions();
 			for (int exprIndex = 0; exprIndex < nbExpressions; exprIndex++) {
-				LSExpression expr = model.getExpression(exprIndex);
+				HxExpression expr = model.getExpression(exprIndex);
 				if (expr.isViolated()) {
 					cout << expr.toString() << " violated \n";
 				}
@@ -600,7 +600,7 @@ int main() {
 				dsol_p << "BUS " << b << endl;
 				for (t = 0; t < T; t++) {
 					cout << "----------------------- trip " << t << endl << "Route: \n";
-					LSCollection xRoute = x[b][t].getCollectionValue();
+					HxCollection xRoute = x[b][t].getCollectionValue();
 					double startb = sol.getDoubleValue(d[b][t][0]);
 					for (i = 0; i < xRoute.count()-1; i++) {
 						dsol_p << startb << "\t";
@@ -658,18 +658,18 @@ int main() {
 	}
 
 	//remove memory
-	delete arrivals;
-	delete departures;
+	delete [] arrivals;
+	delete [] departures;
 
 	for (i = 0; i < S; i++) {
-		delete traveltimes[i];
+		delete [] traveltimes[i];
 	}
 	for (i = 0; i < R; i++) {
-		delete traveltimep[i];
+		delete [] traveltimep[i];
 	}
 
-	delete traveltimes;
-	delete traveltimep;
+	delete [] traveltimes;
+	delete [] traveltimep;
 
 	return 0;
 }
