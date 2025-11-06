@@ -11,8 +11,6 @@ Outputs are written to `data/output/` (e.g., `xsol_*.txt`, `ysol_*.txt`, `dsol_*
 - Hexaly SDK 14.0+ installed
 	- Default expected location on macOS: `/opt/hexaly_14_0`
 	- Or set `HEXALY_HOME` to your SDK root
-- Optional: IBM ILOG CPLEX Studio (some legacy link flags are present in `CMakeLists.txt`)
-	- If you don’t have CPLEX installed, see Troubleshooting to disable those links
 
 ## Getting started
 
@@ -75,36 +73,3 @@ Output files (written to `data/output/`):
 - `data/input/` — sample input data files
 - `data/output/` — outputs written by the program
 - `CMakeLists.txt` — build configuration, including Hexaly SDK detection
-
-## Troubleshooting
-
-### Hexaly not found during configure or link
-
-- Set `HEXALY_HOME` to your installation root or pass `-DHEXALY_ROOT=/path/to/hexaly_14_0` when configuring CMake.
-- Verify the SDK contains `include/localsolver.h` or `include/hexaly.h` and a `lib/` directory with the Hexaly/LocalSolver library.
-
-### Runtime error: library image not found (macOS)
-
-- The build sets an rpath to the detected Hexaly library directory. If you still see a dylib load error, you can run with:
-
-```bash
-export DYLD_LIBRARY_PATH="$HEXALY_HOME/lib:${DYLD_LIBRARY_PATH}"
-./build/Hexaly
-```
-
-### CPLEX link errors
-
-`CMakeLists.txt` currently links CPLEX libraries (`ilocplex`, `cplex`, `concert`). If you don’t have CPLEX installed and encounter link errors, either install CPLEX or remove/comment these lines in `CMakeLists.txt`:
-
-- `target_link_libraries(Hexaly ilocplex cplex concert pthread m)`
-
-The current source (`src/main.cpp`) uses the Hexaly/LocalSolver API; CPLEX is not required for it to run.
-
-## License
-
-See the `LICENSE` file in this repository.
-
-## Acknowledgments
-
-- Hexaly — https://www.hexaly.com/
-- The model and data files are adapted for demonstration and research purposes.
